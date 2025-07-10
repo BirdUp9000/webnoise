@@ -1,0 +1,4 @@
+Checks: '-*,clang-analyzer-*,bugprone-*,modernize-*,-modernize-use-trailing-return-type,performance-*,readability-*,-clang-diagnostic-error'
+HeaderFilterRegex: '.*'
+UseColor: true
+WarningsAsErrors: ''

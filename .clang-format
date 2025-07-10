@@ -1,0 +1,27 @@
+BasedOnStyle: Google
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+ColumnLimit: 120
+AlignAfterOpenBracket: Align
+AllowAllParametersOfDeclarationOnNextLine: false
+
+BreakBeforeBraces: Attach
+BraceWrapping:
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   false
+  AfterNamespace:  false
+  AfterStruct:     false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+DerivePointerAlignment: false
+IndentCaseLabels: true
+AccessModifierOffset: -2
+MaxEmptyLinesToKeep: 1
+KeepEmptyLinesAtTheStartOfBlocks: true

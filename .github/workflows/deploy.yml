@@ -1,0 +1,51 @@
+name: WASM to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Run clang-format
+        run: |
+          files=$(find src include -type f \( -name '*.cpp' -o -name '*.hpp' \))
+          if [ -n "$files" ]; then
+            echo "$files" | xargs clang-format --dry-run
+          else
+            echo "No files to format."
+          fi
+
+      #- name: Run clang-tidy
+      #  run: clang-tidy src/* -- -Iinclude -Iexternal/raygui/src -D__EMSCRIPTEN__
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: docker build -t webnoise-builder .
+
+      - name: Extract WASM and HTML
+        run: |
+          mkdir out
+          docker run --rm -v ${{ github.workspace }}/out:/out webnoise-builder bash -c "\
+          cp /app/build/webnoise.wasm /out/ && \
+          cp /app/build/webnoise.js /out/ && \
+          cp /app/build/webnoise.html /out/index.html"
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
