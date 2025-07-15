@@ -22,8 +22,7 @@ WORKDIR /app/build
 RUN emcmake cmake .. -DCMAKE_BUILD_TYPE=MinSizeRel \
  && cmake --build . --parallel
 
-# Clean up generated HTML (remove fullscreen and resize checkboxes)
-# Note: assumes Emscripten generates webnoise.html in build/
+# Clean up generated HTML
 RUN sed -i 's|<span><input type=checkbox id=resize>Resize canvas</span>||g' webnoise.html \
  && sed -i "s|<span><input type=button onclick='Module.requestFullscreen(document.getElementById(\"pointerLock\").checked,document.getElementById(\"resize\").checked)'value=Fullscreen></span>||g" webnoise.html
 

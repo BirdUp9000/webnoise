@@ -9,6 +9,7 @@ add_subdirectory(external/raylib)
 add_executable(webnoise
     src/main.cpp
     src/webnoise.cpp
+    src/perlin_noise_generator.cpp
 )
 
 target_link_libraries(webnoise raylib)

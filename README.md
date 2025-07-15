@@ -2,9 +2,11 @@
 
 WebNoise is a minimal WebAssembly project written in C++ using [raylib](https://www.raylib.com/) and [raygui](https://github.com/raysan5/raygui). It renders procedural 3D noise (Perlin noise) directly in the browser using WebGL via Emscripten.
 
+[![Build and deploy](https://github.com/BirdUp9000/webnoise/actions/workflows/deploy.yml/badge.svg)](https://github.com/BirdUp9000/webnoise/actions/workflows/deploy.yml)
+
 ## Demo
 > [!NOTE]  
-> 👉 [Live Demo](https://birdup9000.github.io/webnoise/)
+> [Live Demo](https://birdup9000.github.io/webnoise/)
 
 
 ## Features
@@ -32,11 +34,15 @@ Open out/index.html in your browser to see the result.
 ├── src/                    # Source code (.cpp)
 ├── .github/                # GitHub Actions workflow
 ├── .clang-format           # Format rules
-├── .clang-tidy             # Static analysis rules
 ├── .dockerignore
 ├── .gitignore
 ├── .gitmodules             # Submodules config
 ├── CMakeLists.txt          # CMake build script
 ├── Dockerfile              # Docker build for WebAssembly
+├── format.sh               # Formats 'hpp' and 'cpp' files
 └── README.md
 ```
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
