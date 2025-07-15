@@ -4,10 +4,7 @@ WebNoise is a minimal WebAssembly project written in C++ using [raylib](https://
 
 [![Build and deploy](https://github.com/BirdUp9000/webnoise/actions/workflows/deploy.yml/badge.svg)](https://github.com/BirdUp9000/webnoise/actions/workflows/deploy.yml)
 
-## Demo
-> [!NOTE]  
-> [Live Demo](https://birdup9000.github.io/webnoise/)
-
+**[Live Demo](https://birdup9000.github.io/webnoise/)**
 
 ## Features
 
