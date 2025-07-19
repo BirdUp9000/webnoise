@@ -6,11 +6,16 @@ set(CMAKE_CXX_STANDARD 20)
 # Adding Raylib
 add_subdirectory(external/raylib)
 
-add_executable(webnoise
+set(SOURCES
     src/main.cpp
     src/webnoise.cpp
-    src/perlin_noise_generator.cpp
+    src/generator_registry.cpp
 )
+
+# All .cpp files from src/generators/
+file(GLOB GENERATOR_SOURCES src/generators/*.cpp)
+
+add_executable(webnoise ${SOURCES} ${GENERATOR_SOURCES})
 
 target_link_libraries(webnoise raylib)
 
@@ -30,7 +35,6 @@ if(EMSCRIPTEN)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} \
     -s WASM=1 \
-    -s FORCE_FILESYSTEM=1 \
     -s ALLOW_MEMORY_GROWTH=1 \
     -s ASSERTIONS=0 \
     -s ERROR_ON_UNDEFINED_SYMBOLS=1")

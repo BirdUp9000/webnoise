@@ -1,8 +1,25 @@
 #define RAYGUI_IMPLEMENTATION
 #include "webnoise/webnoise.hpp"
 
-CWebNoise::CWebNoise(std::unique_ptr<INoiseGenerator> generator) : p_NoiseGenerator(std::move(generator)) {
+CWebNoise::CWebNoise() {
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Webnoise");
+
+  // Get all registered generator's names
+  m_GenRegistered = CGeneratorRegistry::getNames();
+  if (m_GenRegistered.size() == 0) {
+    throw std::runtime_error("No generator provided");
+  }
+
+  // Perlin generator should be first
+  auto it = std::find(m_GenRegistered.begin(), m_GenRegistered.end(), "Perlin");
+  if (it != m_GenRegistered.end()) {
+    std::rotate(m_GenRegistered.begin(), it, it + 1);
+  }
+
+  // Initialize m_GenState structure
+  m_GenState.m_Name = "Perlin";
+  m_GenState.m_Gen = CGeneratorRegistry::create(m_GenState.m_Name);
+  m_GenState.m_Args = m_GenState.m_Gen->getArguments();
 
   // Init camera
   m_Camera = {0};
@@ -23,7 +40,7 @@ void CWebNoise::m_Run() {
 }
 
 void CWebNoise::m_Update() {
-  m_Time += m_TimeSpeed;
+  // m_Time += m_TimeSpeed;
 
   if (!m_CameraEnabled && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
     Vector2 mouse = GetMousePosition();
@@ -56,22 +73,31 @@ void CWebNoise::m_Update() {
 
 void CWebNoise::m_Draw3D() {
   BeginMode3D(m_Camera);
-  DrawGrid(m_Dimensions, 10.0f / m_Dimensions);
-  auto result = p_NoiseGenerator->Generate(static_cast<unsigned int>(m_Dimensions), m_Scale, m_Time, m_Octaves);
+  DrawGrid(GRAPH_DIMENSIONS, 10.0f / GRAPH_DIMENSIONS);
+  float offset = GRAPH_DIMENSIONS / 2.0f;
 
-  for (const auto& element : result) {
-    Color c = ColorFromHSV(240.0f - element.y * 240.0f, 0.85f, 0.9f);
-    DrawCube(Vector3{element.x, element.y * m_Height, element.z}, 0.05f, 0.05f, 0.05f, c);
+  for (int x = 0; x <= GRAPH_DIMENSIONS; x++) {
+    for (int y = 0; y <= GRAPH_DIMENSIONS; y++) {
+      float fx = static_cast<float>(x) - offset;
+      float fy = static_cast<float>(y) - offset;
+
+      const float result = m_GenState.m_Gen->getNoise(Vector2{fx, fy}, m_GenState.m_Args);
+      Color c = ColorFromHSV(240.0f - result * 240.0f, 0.85f, 0.9f);
+
+      DrawCube(Vector3{fx, result, fy}, 0.05f, 0.05f, 0.05f, c);
+    }
   }
 
   EndMode3D();
 }
 
 void CWebNoise::m_DrawGUI() {
+  static int s_CurrentGenerator = 0;
+
+  // Draw FPS counter and controls
   DrawFPS(WINDOW_WIDTH - 90, 15);
   DrawRectangle(10, 10, 300, 155, Fade(SKYBLUE, 0.5f));
   DrawRectangleLines(10, 10, 300, 155, BLUE);
-
   DrawText("Free camera default controls:", 20, 20, 10, BLACK);
   DrawText("- WASD keys are used for directional movement", 40, 40, 10, DARKGRAY);
   DrawText("- SPACE to move up", 40, 60, 10, DARKGRAY);
@@ -80,14 +106,47 @@ void CWebNoise::m_DrawGUI() {
   DrawText("- Z to zoom to (0, 0, 0)", 40, 120, 10, DARKGRAY);
   DrawText("- Press 'F' to prevent 3D Model from rotating", 40, 140, 10, DARKGRAY);
 
-  DrawText("Time speed:", 40, 180, 15, DARKGRAY);
-  GuiSlider(Rectangle{40, 200, 220, 20}, "0.01f", "0.25f", &m_TimeSpeed, 0.01f, 0.25f);
-  DrawText("Dimensions:", 40, 220, 15, DARKGRAY);
-  GuiSlider(Rectangle{40, 240, 220, 20}, "64", "256", &m_Dimensions, 64, 256);
-  DrawText("Scale:", 40, 260, 15, DARKGRAY);
-  GuiSlider(Rectangle{40, 280, 220, 20}, "0.1f", "0.5f", &m_Scale, 0.1f, 0.5f);
-  DrawText("Height:", 40, 300, 15, DARKGRAY);
-  GuiSlider(Rectangle{40, 320, 220, 20}, "2.0f", "10.0f", &m_Height, 2.0f, 10.0f);
-  DrawText("Octaves:", 40, 340, 15, DARKGRAY);
-  GuiSlider(Rectangle{40, 360, 220, 20}, "1", "5", &m_Octaves, 1.0f, 5.0f);
+  // Draw Generator's control GUI
+  const bool left = GuiButton(Rectangle{10, 180, 30, 30}, " < ");
+  const bool right = GuiButton(Rectangle{280, 180, 30, 30}, " > ");
+
+  if (left || right) {
+    if (left && s_CurrentGenerator == 0)
+      s_CurrentGenerator = m_GenRegistered.size() - 1;
+    else if (right && m_GenRegistered.size() - 1 == s_CurrentGenerator)
+      s_CurrentGenerator = 0;
+    else if (left && s_CurrentGenerator > 0)
+      --s_CurrentGenerator;
+    else if (right && m_GenRegistered.size() - 1 > s_CurrentGenerator)
+      ++s_CurrentGenerator;
+
+    m_GenState.m_Name = m_GenRegistered.at(s_CurrentGenerator);
+    m_GenState.m_Gen = CGeneratorRegistry::create(m_GenState.m_Name);
+    m_GenState.m_Args = m_GenState.m_Gen->getArguments();
+  }
+
+  // Current generator's name
+  GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
+  Rectangle generatorNameBounds = {50, 180, 220, 30};
+
+  int textWidth = GetTextWidth(m_GenState.m_Name.c_str());
+  int textHeight = GuiGetStyle(DEFAULT, TEXT_SIZE);
+
+  Vector2 textPos = {generatorNameBounds.x + (generatorNameBounds.width - textWidth) / 2.0f,
+                     generatorNameBounds.y + (generatorNameBounds.height - textHeight) / 2.0f};
+
+  GuiDrawText(m_GenState.m_Name.c_str(),
+              {textPos.x, textPos.y, static_cast<float>(textWidth), static_cast<float>(textHeight)}, TEXT_ALIGN_LEFT,
+              DARKGRAY);
+
+  // Draw controls
+  GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
+  float xpos = 50;
+  float ypos = 220;
+  for (auto& argument : m_GenState.m_Args) {
+    DrawText(argument.m_Name.c_str(), xpos, ypos, 15, DARKGRAY);
+    GuiSlider(Rectangle{xpos, ypos + 20.0f, 220, 20}, argument.m_TextLeft.c_str(), argument.m_TextRight.c_str(),
+              &argument.m_Value, argument.m_MinValue, argument.m_MaxValue);
+    ypos += 50;
+  }
 }
