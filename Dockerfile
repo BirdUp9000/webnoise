@@ -7,9 +7,6 @@ RUN tar -xzf /tmp/cmake-3.27.0-linux-x86_64.tar.gz -C /opt \
  && ln -s /opt/cmake-3.27.0-linux-x86_64/bin/* /usr/local/bin \
  && rm /tmp/cmake-3.27.0-linux-x86_64.tar.gz
 
-# Install perl (required for HTML cleanup using regex)
-RUN apt-get update && apt-get install -y perl
-
 # Copy project into container
 WORKDIR /app
 COPY . .
@@ -30,7 +27,4 @@ RUN sed -i 's|<span><input type=checkbox id=resize>Resize canvas</span>||g' webn
 RUN sed -i 's/\(body{[^}]*padding:none\)/\1;background-color: #181a1b/' webnoise.html
 
 # Collect final output artifacts
-RUN mkdir -p /out \
- && cp webnoise.wasm /out/ \
- && cp webnoise.js /out/ \
- && cp webnoise.html /out/index.html
+CMD ["bash", "-c", "cp /app/build/webnoise.wasm /out/ && cp /app/build/webnoise.js /out/ && cp /app/build/webnoise.html /out/index.html"]
