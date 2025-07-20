@@ -24,7 +24,7 @@ CWebNoise::CWebNoise() {
 
   // Init camera
   m_Camera.position = DEFAULT_CAMERA_POSITION;
-  m_Camera.target =  DEFAULT_CAMERA_TARGET;
+  m_Camera.target = DEFAULT_CAMERA_TARGET;
   m_Camera.up = DEFAULT_CAMERA_UP;
   m_Camera.fovy = DEFAULT_CAMERA_FOV;
   m_Camera.projection = DEFAULT_CAMERA_PROJECTION;
@@ -58,7 +58,7 @@ void CWebNoise::m_Update() {
 
   if (IsKeyPressed('Z')) {
     m_Camera.position = DEFAULT_CAMERA_POSITION;
-    m_Camera.target =  DEFAULT_CAMERA_TARGET;
+    m_Camera.target = DEFAULT_CAMERA_TARGET;
   }
 
   if (IsKeyPressed('F')) {
