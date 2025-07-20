@@ -1,6 +1,6 @@
 # WebNoise
 
-WebNoise is a minimal, extensible WebAssembly project written in C++ using [raylib](https://www.raylib.com/) and [raygui](https://github.com/raysan5/raygui). It renders procedural 3D noise  directly in the browser using WebGL via Emscripten.
+WebNoise is a minimal, **easy to contribute** WebAssembly project written in C++ using [raylib](https://www.raylib.com/) and [raygui](https://github.com/raysan5/raygui). It renders procedural 3D noise  directly in the browser using WebGL via Emscripten.
 
 [![Build and deploy](https://github.com/BirdUp9000/webnoise/actions/workflows/deploy.yml/badge.svg)](https://github.com/BirdUp9000/webnoise/actions/workflows/deploy.yml)
 
@@ -38,6 +38,7 @@ See CONTRIBUTING.md for instructions on adding new generators, formatting rules,
 ├── src/                    # Source code (.cpp)
 ├── .github/                # GitHub Actions workflow
 ├── .clang-format           # Format rules
+├── .clang-tidy             # Static analysis
 ├── .dockerignore
 ├── .gitignore
 ├── .gitmodules             # Submodules config

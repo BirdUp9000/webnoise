@@ -2,6 +2,10 @@
 
 int main() {
   CWebNoise app;
-  app.m_Run();
+  try {
+    app.m_Run();
+  } catch (std::exception& e) {
+    std::cout << "Exception: " << e.what() << std::endl;
+  }
   return EXIT_SUCCESS;
 }
