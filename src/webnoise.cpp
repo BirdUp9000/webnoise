@@ -7,31 +7,30 @@ CWebNoise::CWebNoise() {
   // Get all registered generator's names
   m_GenRegistered = CGeneratorRegistry::getNames();
   if (m_GenRegistered.size() == 0) {
-    throw std::runtime_error("No generator provided");
+    throw std::runtime_error("No generators provided");
   }
 
-  // Perlin generator should be first
-  auto it = std::find(m_GenRegistered.begin(), m_GenRegistered.end(), "Perlin");
+  // Seek default generator index
+  auto it = std::find(m_GenRegistered.begin(), m_GenRegistered.end(), DEFAULT_GENERATOR);
   if (it != m_GenRegistered.end()) {
-    std::rotate(m_GenRegistered.begin(), it, it + 1);
+    s_CurrentGeneratorIndex = it - m_GenRegistered.begin();
   } else
-    throw std::runtime_error("No Perlin generator provided");
+    throw std::runtime_error("No default generator provided");
 
   // Initialize m_GenState structure
-  m_GenState.m_Name = "Perlin";
+  m_GenState.m_Name = DEFAULT_GENERATOR;
   m_GenState.m_Gen = CGeneratorRegistry::create(m_GenState.m_Name);
   m_GenState.m_Args = m_GenState.m_Gen->getArguments();
 
   // Init camera
-  m_Camera = {0};
-  m_Camera.position = (Vector3){10.0f, 10.0f, 10.0f};
-  m_Camera.target = (Vector3){-3.0f, 0.0f, 0.0f};
-  m_Camera.up = (Vector3){0.0f, 1.0f, 0.0f};
-  m_Camera.fovy = 45.0f;
-  m_Camera.projection = CAMERA_PERSPECTIVE;
+  m_Camera.position = DEFAULT_CAMERA_POSITION;
+  m_Camera.target =  DEFAULT_CAMERA_TARGET;
+  m_Camera.up = DEFAULT_CAMERA_UP;
+  m_Camera.fovy = DEFAULT_CAMERA_FOV;
+  m_Camera.projection = DEFAULT_CAMERA_PROJECTION;
 
   DisableCursor();
-  SetTargetFPS(60);
+  SetTargetFPS(FPS);
 }
 
 CWebNoise::~CWebNoise() { CloseWindow(); }
@@ -58,8 +57,8 @@ void CWebNoise::m_Update() {
   }
 
   if (IsKeyPressed('Z')) {
-    m_Camera.position = (Vector3){10.0f, 10.0f, 10.0f};
-    m_Camera.target = (Vector3){-3.0f, 0.0f, 0.0f};
+    m_Camera.position = DEFAULT_CAMERA_POSITION;
+    m_Camera.target =  DEFAULT_CAMERA_TARGET;
   }
 
   if (IsKeyPressed('F')) {
@@ -93,8 +92,6 @@ void CWebNoise::m_Draw3D() {
 }
 
 void CWebNoise::m_DrawGUI() {
-  static int s_CurrentGenerator = 0;
-
   // Draw FPS counter and controls
   DrawFPS(WINDOW_WIDTH - 90, 15);
   DrawRectangle(10, 10, 300, 155, Fade(SKYBLUE, 0.5f));
@@ -112,16 +109,16 @@ void CWebNoise::m_DrawGUI() {
   const bool right = GuiButton(Rectangle{280, 180, 30, 30}, " > ");
 
   if (left || right) {
-    if (left && s_CurrentGenerator == 0)
-      s_CurrentGenerator = m_GenRegistered.size() - 1;
-    else if (right && m_GenRegistered.size() - 1 == s_CurrentGenerator)
-      s_CurrentGenerator = 0;
-    else if (left && s_CurrentGenerator > 0)
-      --s_CurrentGenerator;
-    else if (right && m_GenRegistered.size() - 1 > s_CurrentGenerator)
-      ++s_CurrentGenerator;
+    if (left && s_CurrentGeneratorIndex == 0)
+      s_CurrentGeneratorIndex = m_GenRegistered.size() - 1;
+    else if (right && m_GenRegistered.size() - 1 == s_CurrentGeneratorIndex)
+      s_CurrentGeneratorIndex = 0;
+    else if (left && s_CurrentGeneratorIndex > 0)
+      --s_CurrentGeneratorIndex;
+    else if (right && m_GenRegistered.size() - 1 > s_CurrentGeneratorIndex)
+      ++s_CurrentGeneratorIndex;
 
-    m_GenState.m_Name = m_GenRegistered.at(s_CurrentGenerator);
+    m_GenState.m_Name = m_GenRegistered.at(s_CurrentGeneratorIndex);
     m_GenState.m_Gen = CGeneratorRegistry::create(m_GenState.m_Name);
     m_GenState.m_Args = m_GenState.m_Gen->getArguments();
   }

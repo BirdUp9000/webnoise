@@ -6,7 +6,10 @@
 // This is an example noise generator for the WebNoise project.
 //
 // You can use this file as a reference for implementing your own
-// generator. To register a new generator:
+// generator. 
+// If you want to see a little more complicated example - go to perlin.cpp.
+//
+// To register a new generator:
 //
 // 1. Inherit from `INoiseGenerator`
 // 2. Override `getNoise()` and `getArguments()`
