@@ -87,36 +87,43 @@ class PerlinNoiseGenerator final : public INoiseGenerator {
   float m_Time = 0.0f;
 
 public:
-  float getNoise(const Vector2 position, const std::vector<CArgument>& args) override {
+  std::vector<Vector3> getNoise(const float dimensions, const std::vector<CArgument>& args) override {
+    std::vector<Vector3> result = {};
     float scale = args[0].m_Value;
+    float octaves = args[2].m_Value;
     m_Time += args[1].m_Value;
-    int octaves = static_cast<int>(args[2].m_Value);
 
-    float x = position.x * scale;
-    float y = position.y * scale;
+    for (int y = 0; y <= static_cast<int>(dimensions); y++) {
+      for (int x = 0; x <= static_cast<int>(dimensions); x++) {
+        float fx = x * scale;
+        float fy = y * scale;
 
-    float total = 0.0f;
-    float amplitude = 1.0f;
-    float frequency = 1.0f;
-    float maxAmplitude = 0.0f;
+        float total = 0.0f;
+        float amplitude = 1.0f;
+        float frequency = 1.0f;
+        float maxAmplitude = 0.0f;
 
-    for (int i = 0; i < octaves; ++i) {
-      Vector3 p = {x * frequency, y * frequency, m_Time * frequency};
-      float noise = perlin(p);
+        for (int i = 0; i < octaves; i++) {
+          float noise = perlin(Vector3{fx * frequency, fy * frequency, m_Time * frequency});
 
-      total += noise * amplitude;
-      maxAmplitude += amplitude;
+          total += noise * amplitude;
+          maxAmplitude += amplitude;
 
-      amplitude *= 0.5f;
-      frequency *= 2.0f;
+          amplitude *= 0.5f;
+          frequency *= 2.0f;
+        }
+
+        float normalized = total / maxAmplitude;
+
+        result.emplace_back(Vector3{static_cast<float>(x), normalized, static_cast<float>(y)});
+      }
     }
-
-    return total / maxAmplitude;
+    return result;
   }
 
   std::vector<CArgument> getArguments() const override {
-    return {{"Scale", "0.1f", "0.5f", 0.1f, 0.1f, 0.5f},
-            {"Time Speed", "0.01f", "0.25f", 0.01f, 0.01f, 0.25f},
+    return {{"Scale", "0.05f", "0.2f", 0.1f, 0.05f, 0.2f},
+            {"Time Speed", "0.01f", "0.15f", 0.01f, 0.01f, 0.15f},
             {"Octaves", "1", "5", 1.0f, 1.0f, 5.0f}};
   }
 };

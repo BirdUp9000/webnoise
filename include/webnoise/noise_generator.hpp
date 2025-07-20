@@ -2,12 +2,11 @@
 
 #include <vector>
 
+#include "raylib.h"
 #include "webnoise/argument.hpp"
 
-#include "raylib.h"
-
 struct INoiseGenerator {
-  virtual float getNoise(const Vector2 position, const std::vector<CArgument>& args) = 0;
+  virtual std::vector<Vector3> getNoise(const float dimensions, const std::vector<CArgument>& args) = 0;
   virtual std::vector<CArgument> getArguments() const = 0;
   virtual ~INoiseGenerator() = default;
 };

@@ -14,7 +14,8 @@ CWebNoise::CWebNoise() {
   auto it = std::find(m_GenRegistered.begin(), m_GenRegistered.end(), "Perlin");
   if (it != m_GenRegistered.end()) {
     std::rotate(m_GenRegistered.begin(), it, it + 1);
-  }
+  } else
+    throw std::runtime_error("No Perlin generator provided");
 
   // Initialize m_GenState structure
   m_GenState.m_Name = "Perlin";
@@ -24,7 +25,7 @@ CWebNoise::CWebNoise() {
   // Init camera
   m_Camera = {0};
   m_Camera.position = (Vector3){10.0f, 10.0f, 10.0f};
-  m_Camera.target = (Vector3){0.0f, 0.0f, 0.0f};
+  m_Camera.target = (Vector3){-3.0f, 0.0f, 0.0f};
   m_Camera.up = (Vector3){0.0f, 1.0f, 0.0f};
   m_Camera.fovy = 45.0f;
   m_Camera.projection = CAMERA_PERSPECTIVE;
@@ -35,13 +36,16 @@ CWebNoise::CWebNoise() {
 
 CWebNoise::~CWebNoise() { CloseWindow(); }
 
+/**
+ * @brief Using of emscripten_set_main_loop_arg instead emscripten_set_main_loop
+ *        bc last one can work only with static functions.
+ */
 void CWebNoise::m_Run() {
+
   emscripten_set_main_loop_arg([](void* arg) { static_cast<CWebNoise*>(arg)->m_Update(); }, this, 0, 1);
 }
 
 void CWebNoise::m_Update() {
-  // m_Time += m_TimeSpeed;
-
   if (!m_CameraEnabled && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
     Vector2 mouse = GetMousePosition();
     if (mouse.x > 320) {
@@ -55,7 +59,7 @@ void CWebNoise::m_Update() {
 
   if (IsKeyPressed('Z')) {
     m_Camera.position = (Vector3){10.0f, 10.0f, 10.0f};
-    m_Camera.target = (Vector3){0.0f, 0.0f, 0.0f};
+    m_Camera.target = (Vector3){-3.0f, 0.0f, 0.0f};
   }
 
   if (IsKeyPressed('F')) {
@@ -73,19 +77,16 @@ void CWebNoise::m_Update() {
 
 void CWebNoise::m_Draw3D() {
   BeginMode3D(m_Camera);
-  DrawGrid(GRAPH_DIMENSIONS, 10.0f / GRAPH_DIMENSIONS);
-  float offset = GRAPH_DIMENSIONS / 2.0f;
+  DrawGrid(10, 1.0f);
 
-  for (int x = 0; x <= GRAPH_DIMENSIONS; x++) {
-    for (int y = 0; y <= GRAPH_DIMENSIONS; y++) {
-      float fx = static_cast<float>(x) - offset;
-      float fy = static_cast<float>(y) - offset;
+  const auto result = m_GenState.m_Gen->getNoise(m_Dimensions, m_GenState.m_Args);
 
-      const float result = m_GenState.m_Gen->getNoise(Vector2{fx, fy}, m_GenState.m_Args);
-      Color c = ColorFromHSV(240.0f - result * 240.0f, 0.85f, 0.9f);
-
-      DrawCube(Vector3{fx, result, fy}, 0.05f, 0.05f, 0.05f, c);
-    }
+  for (const auto& point : result) {
+    Color c = ColorFromHSV(point.y * 120.0f, 0.85f, 0.9f);
+    float spacing = 10.0f / m_Dimensions;
+    float xpos = -5.0f + point.x * spacing;
+    float zpos = -5.0f + point.z * spacing;
+    DrawCube(Vector3{xpos, point.y * m_Height, zpos}, 0.05f, 0.05f, 0.05f, c);
   }
 
   EndMode3D();
@@ -103,7 +104,7 @@ void CWebNoise::m_DrawGUI() {
   DrawText("- SPACE to move up", 40, 60, 10, DARKGRAY);
   DrawText("- CTRL to move down", 40, 80, 10, DARKGRAY);
   DrawText("- Mouse wheel to zoom in / out", 40, 100, 10, DARKGRAY);
-  DrawText("- Z to zoom to (0, 0, 0)", 40, 120, 10, DARKGRAY);
+  DrawText("- Z to zoom to center", 40, 120, 10, DARKGRAY);
   DrawText("- Press 'F' to prevent 3D Model from rotating", 40, 140, 10, DARKGRAY);
 
   // Draw Generator's control GUI
@@ -139,10 +140,16 @@ void CWebNoise::m_DrawGUI() {
               {textPos.x, textPos.y, static_cast<float>(textWidth), static_cast<float>(textHeight)}, TEXT_ALIGN_LEFT,
               DARKGRAY);
 
-  // Draw controls
+  // Draw mandatory controls
   GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
+  DrawText("Dimensions", 50, 220, 15, DARKGRAY);
+  GuiSlider(Rectangle{50, 240, 220, 20}, "10.0f", "100.0f", &m_Dimensions, 10.0f, 100.0f);
+  DrawText("Height", 50, 270, 15, DARKGRAY);
+  GuiSlider(Rectangle{50, 290, 220, 20}, "1.0f", "10.0f", &m_Height, 1.0f, 10.0f);
+
+  // Draw controls
   float xpos = 50;
-  float ypos = 220;
+  float ypos = 320;
   for (auto& argument : m_GenState.m_Args) {
     DrawText(argument.m_Name.c_str(), xpos, ypos, 15, DARKGRAY);
     GuiSlider(Rectangle{xpos, ypos + 20.0f, 220, 20}, argument.m_TextLeft.c_str(), argument.m_TextRight.c_str(),

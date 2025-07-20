@@ -2,7 +2,6 @@
 
 #include <string>
 
-//const char *textLeft, const char *textRight, float *value, float minValue, float maxValue)
 struct CArgument final {
   std::string m_Name;
   std::string m_TextLeft;
