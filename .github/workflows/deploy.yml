@@ -50,10 +50,7 @@ jobs:
       - name: Extract WASM and HTML
         run: |
           mkdir out
-          docker run --rm -v ${{ github.workspace }}/out:/out webnoise-builder bash -c "\
-          cp /app/build/webnoise.wasm /out/ && \
-          cp /app/build/webnoise.js /out/ && \
-          cp /app/build/webnoise.html /out/index.html"
+          docker run --rm -v ${{ github.workspace }}/out:/out webnoise-builder
 
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
